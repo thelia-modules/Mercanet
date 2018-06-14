@@ -1,0 +1,5 @@
+{intl d='mercanet.email.default' l='Dear customer'},<br>
+{intl d='mercanet.email.default' l='This is a confirmation of the payment of your order %ref with Mercanet on our shop.' ref=$order_ref}<br>
+{intl d='mercanet.email.default' l='Your invoice is now available in your customer account at %url.'} url={config key="url_site"}}<br>
+{intl d='mercanet.email.default' l='Thank you again for your purchase.'}<br>
+{intl d='mercanet.email.default' l='The %store_name team.' store_name={config key="store_name"}}<br>
