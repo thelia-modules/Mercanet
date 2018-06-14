@@ -43,8 +43,12 @@ class Mercanet extends AbstractPaymentModule
     {
         // Setup some default values
         if (null === Mercanet::getConfigValue('merchantId', null)) {
+            // Initialize with test data
+            Mercanet::setConfigValue('merchantId', '211000021310001');
             Mercanet::setConfigValue('secretKeyVersion', 1);
-            Mercanet::setConfigValue('secretKey', null);
+            Mercanet::setConfigValue('secretKey', 'S9i8qClCnb2CZU3y3Vn0toIOgz3z_aBi79akR30vM9o');
+            Mercanet::setConfigValue('mode', 'TEST');
+            Mercanet::getConfigValue('allowed_ip_list', $_SERVER['REMOTE_ADDR']);
             Mercanet::setConfigValue('minimum_amount', 0);
             Mercanet::setConfigValue('maximum_amount', 0);
             Mercanet::setConfigValue('send_payment_confirmation_message', 1);

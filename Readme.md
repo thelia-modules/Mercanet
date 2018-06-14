@@ -17,6 +17,8 @@ You can also extract the archive in the `<thelia root>/local/modules` directory.
 
 Activate the module from the Modules page of your back-office.
 
+The module is pre-configured with test shop data (see details here : https://documentation.mercanet.bnpparibas.net/index.php?title=Boutique_de_test, and test card data here https://documentation.mercanet.bnpparibas.net/index.php?title=Cartes_de_test ). 
+
 #### composer
 
 ```
@@ -48,6 +50,8 @@ Le module estbasé sur le "Connecteur POST" (plus de détails technique ici: htt
 Installez ce module directement depuis la page Modules de votre back-office, en envoyant le fichier zip du module.
 
 Vous pouvez aussi décompresser le module, et le placer manuellement dans le dossier ```<thelia_root>/local/modules```. Assurez-vous que le nom du dossier est bien ```Mercanet```, et pas ```Mercanet-master```
+
+Le module est préconfiguré avec les données de la boutique de test BNP Paribas (plus de détails ici : https://documentation.mercanet.bnpparibas.net/index.php?title=Boutique_de_test, les détails sur les cartes de test sont ici : https://documentation.mercanet.bnpparibas.net/index.php?title=Cartes_de_test )
 
 ### composer
 
