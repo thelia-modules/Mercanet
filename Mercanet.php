@@ -139,7 +139,7 @@ class Mercanet extends AbstractPaymentModule
         $paymentRequest->setKeyVersion(Mercanet::getConfigValue('secretKeyVersion'));
 
         $paymentRequest->setTransactionReference($transactionId);
-        $paymentRequest->setAmount(intval(100 * $amount));
+        $paymentRequest->setAmount(intval(round(100 * $amount)));
 
         $paymentRequest->setCurrency($order->getCurrency()->getCode());
 
