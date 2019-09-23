@@ -95,7 +95,7 @@ class Mercanet extends AbstractPaymentModule
 
         self::setConfigValue('transactionId', $transId);
 
-        return sprintf('%s-%d', uniqid('' , false), $transId);
+        return sprintf('%s%d', uniqid('' , false), $transId);
     }
 
     /**
