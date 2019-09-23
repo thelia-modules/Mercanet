@@ -33,8 +33,6 @@ class Mercanet extends AbstractPaymentModule
      */
     const CONFIRMATION_MESSAGE_NAME = 'mercanet_payment_confirmation';
 
-    private $parameters;
-
     /**
      * @param ConnectionInterface|null $con
      * @throws \Propel\Runtime\Exception\PropelException
@@ -42,23 +40,23 @@ class Mercanet extends AbstractPaymentModule
     public function postActivation(ConnectionInterface $con = null)
     {
         // Setup some default values
-        if (null === Mercanet::getConfigValue('merchantId', null)) {
+        if (null === self ::getConfigValue('merchantId', null)) {
             // Initialize with test data
-            Mercanet::setConfigValue('merchantId', '211000021310001');
-            Mercanet::setConfigValue('secretKeyVersion', 1);
-            Mercanet::setConfigValue('secretKey', 'S9i8qClCnb2CZU3y3Vn0toIOgz3z_aBi79akR30vM9o');
-            Mercanet::setConfigValue('mode', 'TEST');
-            Mercanet::setConfigValue('allowed_ip_list', $_SERVER['REMOTE_ADDR']);
-            Mercanet::setConfigValue('minimum_amount', 0);
-            Mercanet::setConfigValue('maximum_amount', 0);
-            Mercanet::setConfigValue('send_payment_confirmation_message', 1);
+            self::setConfigValue('merchantId', '211000021310001');
+            self::setConfigValue('secretKeyVersion', 1);
+            self::setConfigValue('secretKey', 'S9i8qClCnb2CZU3y3Vn0toIOgz3z_aBi79akR30vM9o');
+            self::setConfigValue('mode', 'TEST');
+            self::setConfigValue('allowed_ip_list', $_SERVER['REMOTE_ADDR']);
+            self::setConfigValue('minimum_amount', 0);
+            self::setConfigValue('maximum_amount', 0);
+            self::setConfigValue('send_payment_confirmation_message', 1);
         }
 
-        if (null === MessageQuery::create()->findOneByName(Mercanet::CONFIRMATION_MESSAGE_NAME)) {
+        if (null === MessageQuery::create()->findOneByName(self::CONFIRMATION_MESSAGE_NAME)) {
             $message = new Message();
 
             $message
-                ->setName(Mercanet::CONFIRMATION_MESSAGE_NAME)
+                ->setName(self::CONFIRMATION_MESSAGE_NAME)
                 ->setHtmlTemplateFileName('mercanet-payment-confirmation.html')
                 ->setTextTemplateFileName('mercanet-payment-confirmation.txt')
                 ->setLocale('en_US')
@@ -80,7 +78,7 @@ class Mercanet extends AbstractPaymentModule
     public function destroy(ConnectionInterface $con = null, $deleteModuleData = false)
     {
         if ($deleteModuleData) {
-            MessageQuery::create()->findOneByName(Mercanet::CONFIRMATION_MESSAGE_NAME)->delete();
+            MessageQuery::create()->findOneByName(self::CONFIRMATION_MESSAGE_NAME)->delete();
         }
     }
 
@@ -91,13 +89,13 @@ class Mercanet extends AbstractPaymentModule
      */
     private function generateTransactionID()
     {
-        $transId = Mercanet::getConfigValue('transactionId', 1);
+        $transId = self::getConfigValue('transactionId', 1);
 
-        $transId = 1 + intval($transId);
+        $transId = 1 + (int)$transId;
 
-        Mercanet::setConfigValue('transactionId', $transId);
+        self::setConfigValue('transactionId', $transId);
 
-        return sprintf("%09d", $transId);
+        return sprintf('%s-%d', uniqid('' , false), $transId);
     }
 
     /**
@@ -110,7 +108,7 @@ class Mercanet extends AbstractPaymentModule
      *  In many cases, it's necessary to send a form to the payment gateway.
      *  On your response you can return this form already completed, ready to be sent
      *
-     * @param  \Thelia\Model\Order                       $order processed order
+     * @param  Order $order processed order
      * @return null|\Thelia\Core\HttpFoundation\Response
      * @throws \Propel\Runtime\Exception\PropelException
      */
@@ -125,21 +123,21 @@ class Mercanet extends AbstractPaymentModule
         $transactionId = $this->generateTransactionID();
 
         // Initialisation de la classe Mercanet avec passage en parametre de la cle secrete
-        $paymentRequest = new MercanetApi(Mercanet::getConfigValue('secretKey'));
+        $paymentRequest = new MercanetApi(self::getConfigValue('secretKey'));
 
         // Indiquer quelle page de paiement appeler : TEST ou PRODUCTION
-        if ("TEST" === Mercanet::getConfigValue('mode', 'TEST')) {
+        if ('TEST' === self::getConfigValue('mode', 'TEST')) {
             $paymentRequest->setUrl(MercanetApi::TEST);
         } else {
             $paymentRequest->setUrl(MercanetApi::PRODUCTION);
         }
 
         // Renseigner les parametres obligatoires pour l'appel de la page de paiement
-        $paymentRequest->setMerchantId(Mercanet::getConfigValue('merchantId'));
-        $paymentRequest->setKeyVersion(Mercanet::getConfigValue('secretKeyVersion'));
+        $paymentRequest->setMerchantId(self::getConfigValue('merchantId'));
+        $paymentRequest->setKeyVersion(self::getConfigValue('secretKeyVersion'));
 
         $paymentRequest->setTransactionReference($transactionId);
-        $paymentRequest->setAmount(intval(round(100 * $amount)));
+        $paymentRequest->setAmount((int)round(100 * $amount));
 
         $paymentRequest->setCurrency($order->getCurrency()->getCode());
 
@@ -167,7 +165,7 @@ class Mercanet extends AbstractPaymentModule
         /*
         echo "<html><body><form name=\"redirectForm\" method=\"POST\" action=\"" . $paymentRequest->getUrl() . "\">" .
             "<input type=\"hidden\" name=\"Data\" value=\"". $paymentRequest->toParameterString() . "\">" .
-            "<input type=\"hidden\" name=\"InterfaceVersion\" value=\"". Mercanet::INTERFACE_VERSION . "\">" .
+            "<input type=\"hidden\" name=\"InterfaceVersion\" value=\"". self::INTERFACE_VERSION . "\">" .
             "<input type=\"hidden\" name=\"Seal\" value=\"" . $paymentRequest->getShaSign() . "\">" .
             "<noscript><input type=\"submit\" name=\"Go\" value=\"Click to continue\"/></noscript> </form>" .
             "<script type=\"text/javascript\"> document.redirectForm.submit(); </script>" .
@@ -190,14 +188,14 @@ class Mercanet extends AbstractPaymentModule
      */
     public function isValidPayment()
     {
-        $valid = (null !== Mercanet::getConfigValue('secretKey')) && (null !== Mercanet::getConfigValue('merchantId'));
+        $valid = (null !== self::getConfigValue('secretKey')) && (null !== self::getConfigValue('merchantId'));
 
         if ($valid) {
-            $mode = Mercanet::getConfigValue('mode', false);
+            $mode = self::getConfigValue('mode', false);
 
             // If we're in test mode, do not display Payzen on the front office, except for allowed IP addresses.
-            if ('TEST' == $mode) {
-                $raw_ips = explode("\n", Mercanet::getConfigValue('allowed_ip_list', ''));
+            if ('TEST' === $mode) {
+                $raw_ips = explode("\n", self::getConfigValue('allowed_ip_list', ''));
 
                 $allowed_client_ips = array();
 
@@ -207,9 +205,9 @@ class Mercanet extends AbstractPaymentModule
 
                 $client_ip = $this->getRequest()->getClientIp();
 
-                $valid = in_array($client_ip, $allowed_client_ips);
+                $valid = in_array($client_ip , $allowed_client_ips , true);
 
-            } elseif ('PRODUCTION' == $mode) {
+            } elseif ('PRODUCTION' === $mode) {
                 $valid = true;
             }
 
@@ -232,8 +230,8 @@ class Mercanet extends AbstractPaymentModule
         // Check if total order amount is in the module's limits
         $order_total = $this->getCurrentOrderTotalAmount();
 
-        $min_amount = Mercanet::getConfigValue('minimum_amount', 0);
-        $max_amount = Mercanet::getConfigValue('maximum_amount', 0);
+        $min_amount = self::getConfigValue('minimum_amount', 0);
+        $max_amount = self::getConfigValue('maximum_amount', 0);
 
         return
             $order_total > 0
