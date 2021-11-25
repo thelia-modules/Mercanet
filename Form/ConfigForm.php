@@ -175,6 +175,22 @@ class ConfigForm extends BaseForm
                 ]
             )
             ->add(
+                'mode_v2_simplifie',
+                'checkbox',
+                [
+                    'value' => 1,
+                    'required' => false,
+                    'label' => $this->translator->trans('Simplified migration of 1.0 account', [], Mercanet::MODULE_DOMAIN),
+                    'label_attr' => [
+                        'help' => $this->translator->trans(
+                            'Somes Mercanet 1.0 accounts are migrated in 2.0 in a specific way, called "simplified migration". Please check with your account manager to get this information.',
+                            [],
+                            Mercanet::MODULE_DOMAIN
+                        )
+                    ]
+                ]
+            )
+            ->add(
                 'send_payment_confirmation_message',
                 'checkbox',
                 [

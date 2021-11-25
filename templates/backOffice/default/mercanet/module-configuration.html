@@ -39,6 +39,7 @@
                                 <div class="col-md-4">
                                     <p class="title title-without-tabs">{intl d='mercanet.bo.default' l="Operation mode"}</p>
 
+                                    {render_form_field form=$form field="mode_v2_simplifie" value=$mode_v2_simplifie}
                                     {render_form_field form=$form field="mode" value=$mode}
                                     {render_form_field form=$form field="allowed_ip_list" value=$allowed_ip_list}
 
@@ -71,7 +72,7 @@
 
                                     <div class="well well-sm">
                                         <span class="glyphicon glyphicon-info-sign"></span>
-                                        {intl d='paypal.bo.default' l='You can <a href="%url">edit the payment confirmation email</a> sent to the customer after a successful payment.' url={url path="/admin/configuration/messages"}}
+                                        {intl d='mercanet.bo.default' l='You can <a href="%url">edit the payment confirmation email</a> sent to the customer after a successful payment.' url={url path="/admin/configuration/messages"}}
                                     </div>
 
                                     {render_form_field form=$form field="minimum_amount" value=$minimum_amount}

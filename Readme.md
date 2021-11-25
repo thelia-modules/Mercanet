@@ -7,6 +7,8 @@ This module offers to your customers the Mercanet payment system, which is used 
 
 The module is based on the "Connecteur POST" (more details here : https://documentation.mercanet.bnpparibas.net/index.php?title=Connecteur_POST )
 
+The module supports simplified 1.0 migrated accounts. 
+
 ### Installation
 
 #### Manually
@@ -42,6 +44,8 @@ A log of Mercanet post-payment callbacks is displayed in the configuration page.
 Ce module permet à vos clients de payer leurs commande par carte bancaire via la plate-forme Mercanet, utilisée par la BNP Paribas.
 
 Le module estbasé sur le "Connecteur POST" (plus de détails technique ici: https://documentation.mercanet.bnpparibas.net/index.php?title=Connecteur_POST)
+
+Le module prend en charge les migrations simplifiées de comptes en version 1.0
 
 ## Installation
 

@@ -81,12 +81,12 @@ class MercanetApi
         'customerContact.phone', 'customerContact.title', 'expirationDate', 'automaticResponseUrl',
         'templateName','paymentMeanBrandList', 'instalmentData.number', 'instalmentData.datesList',
         'instalmentData.transactionReferencesList', 'instalmentData.amountsList', 'paymentPattern',
-        'captureDay', 'fraudData.bypass3DS'
+        'captureDay', 'fraudData.bypass3DS',
+        's10TransactionReference.s10TransactionId', 'orderId',
     );
 
     private $requiredFields = array(
-        'amount', 'currencyCode', 'merchantId', 'normalReturnUrl',
-        'transactionReference', 'keyVersion'
+        'amount', 'currencyCode', 'merchantId', 'normalReturnUrl', 'keyVersion'
     );
 
     public $allowedlanguages = array(
@@ -351,6 +351,19 @@ class MercanetApi
     public function setPaymentPattern($paymentPattern)
     {
         $this->parameters['paymentPattern'] = $paymentPattern;
+    }
+
+    /**
+     * @param $transactionId 0 to 999999
+     */
+    public function setS10TransactionId($transactionId)
+    {
+        $this->parameters['s10TransactionReference.s10TransactionId'] = $transactionId;
+    }
+
+    public function setOrderId(int $orderId)
+    {
+        $this->parameters['orderId'] = $orderId;
     }
 
     public function __call($method, $args)

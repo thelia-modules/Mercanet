@@ -50,6 +50,8 @@ class Mercanet extends AbstractPaymentModule
             self::setConfigValue('minimum_amount', 0);
             self::setConfigValue('maximum_amount', 0);
             self::setConfigValue('send_payment_confirmation_message', 1);
+            self::setConfigValue('transactionId', 1);
+            self::setConfigValue('mode_v2_simplifie', 0);
         }
 
         if (null === MessageQuery::create()->findOneByName(self::CONFIRMATION_MESSAGE_NAME)) {
@@ -95,7 +97,29 @@ class Mercanet extends AbstractPaymentModule
 
         self::setConfigValue('transactionId', $transId);
 
-        return sprintf('%s%d', uniqid('' , false), $transId);
+        return sprintf('%s%d', uniqid('', false), $transId);
+    }
+
+    /**
+     *
+     * generate a V1 transaction id 'reset every 24 hour
+     * @return int|mixed
+     */
+    private function generateV1SimplifieTransactionID()
+    {
+        $transId = self::getConfigValue('v1TransactionId', 1);
+
+        $transId = 1 + (int)$transId;
+
+        // This ID is supposed unique for a single day. We wiil not rester it everyday, nut we will
+        // set is to 1 when the limit size (6 digits) is reached.
+        if ($transId > 999999) {
+            $transId = 1;
+        }
+
+        self::setConfigValue('v1TransactionId', $transId);
+
+        return sprintf("%06d", $transId);
     }
 
     /**
@@ -114,16 +138,24 @@ class Mercanet extends AbstractPaymentModule
      */
     public function pay(Order $order)
     {
+        $estModeV2Simplifile = (bool) self::getConfigValue('mode_v2_simplifie');
+
         $amount = $order->getTotalAmount();
         $customer = $order->getCustomer();
 
         /** @var Router $router */
         $router = $this->getContainer()->get('router.mercanet');
 
-        $transactionId = $this->generateTransactionID();
-
         // Initialisation de la classe Mercanet avec passage en parametre de la cle secrete
         $paymentRequest = new MercanetApi(self::getConfigValue('secretKey'));
+
+        if ($estModeV2Simplifile) {
+            $transactionId = $this->generateV1SimplifieTransactionID();
+            $paymentRequest->sets10TransactionId($this->generateV1SimplifieTransactionID());
+        } else {
+            $transactionId = $this->generateTransactionID();
+            $paymentRequest->setTransactionReference($transactionId);
+        }
 
         // Indiquer quelle page de paiement appeler : TEST ou PRODUCTION
         if ('TEST' === self::getConfigValue('mode', 'TEST')) {
@@ -136,14 +168,12 @@ class Mercanet extends AbstractPaymentModule
         $paymentRequest->setMerchantId(self::getConfigValue('merchantId'));
         $paymentRequest->setKeyVersion(self::getConfigValue('secretKeyVersion'));
 
-        $paymentRequest->setTransactionReference($transactionId);
         $paymentRequest->setAmount((int)round(100 * $amount));
 
         $paymentRequest->setCurrency($order->getCurrency()->getCode());
 
         $paymentRequest->setNormalReturnUrl(URL::getInstance()->absoluteUrl($router->generate('mercanet.payment.manual_response')));
         $paymentRequest->setAutomaticResponseUrl(URL::getInstance()->absoluteUrl($router->generate('mercanet.payment.confirmation')));
-
 
         // Renseigner les parametres facultatifs pour l'appel de la page de paiement
         try {
@@ -153,13 +183,12 @@ class Mercanet extends AbstractPaymentModule
         }
 
         $paymentRequest->setCustomerContactEmail($customer->getEmail());
+        $paymentRequest->setOrderId($order->getId());
+        $order->setTransactionRef($transactionId)->save();
 
         // Verification de la validite des parametres renseignes
         $paymentRequest->validate();
 
-
-        // Save transaction ID
-        $order->setTransactionRef($transactionId)->save();
 
         // Appel de la page de paiement Mercanet avec le connecteur POST en passant en parametres : Data, InterfaceVersion, Seal
         /*

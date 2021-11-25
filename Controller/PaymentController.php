@@ -27,7 +27,7 @@ use Thelia\Module\BasePaymentModuleController;
  */
 class PaymentController extends BasePaymentModuleController
 {
-    static $resultCodes = [
+    protected static $resultCodes = [
         '00' => '	Transaction acceptée',
         '02' => '	Demande d’autorisation par téléphone à la banque à cause d’un dépassement du plafond d’autorisation sur la carte, si vous êtes autorisé à forcer les transactions',
         '03' => '	Contrat commerçant invalide',
@@ -67,24 +67,24 @@ class PaymentController extends BasePaymentModuleController
         $paymentResponse->setResponse($_POST);
 
         $order = OrderQuery::create()
-            ->filterByTransactionRef($paymentResponse->getParam('TRANSACTIONREFERENCE'))
+            ->filterById($paymentResponse->getParam('ORDERID'))
             ->filterByPaymentModuleId(Mercanet::getModuleId())
             ->findOne();
 
         if ($paymentResponse->isValid() && $paymentResponse->isSuccessful()) {
-            return $this->redirectToSuccessPage($order->getId());
+            $this->redirectToSuccessPage($order->getId());
         }
 
         $resultCode = $paymentResponse->getParam('RESPONSECODE');
 
         // Annulation de la commande
-        if ($resultCode == 17) {
-            return $this->processUserCancel($order->getId());
+        if ((int) $resultCode === 17) {
+            $this->processUserCancel($order->getId());
         }
 
-        $message = isset(self::$resultCodes[$resultCode]) ? self::$resultCodes[$resultCode] : 'Raison inconnue';
+        $message = self::$resultCodes[$resultCode] ?? 'Raison inconnue';
 
-        return $this->redirectToFailurePage($order->getId(), $message);
+        $this->redirectToFailurePage($order->getId(), $message);
     }
 
     /**
@@ -113,7 +113,7 @@ class PaymentController extends BasePaymentModuleController
             )
         );
 
-        if($paymentResponse->isValid()) {
+        if ($paymentResponse->isValid()) {
             if ($paymentResponse->isSuccessful()) {
                 if (null !== $order = OrderQuery::create()
                     ->filterByTransactionRef($paymentResponse->getParam('TRANSACTIONREFERENCE'))
