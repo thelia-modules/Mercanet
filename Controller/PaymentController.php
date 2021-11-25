@@ -140,14 +140,21 @@ class PaymentController extends BasePaymentModuleController
                         )
                     );
                 } else {
-                    $this->cancelPayment($order->getId());
-
                     $this->getLog()->addError(
                         $this->getTranslator()->trans(
                             'Cannot validate order. Response code is %resp',
                             ['%resp' => $paymentResponse->getParam('RESPONSECODE')],
                             Mercanet::MODULE_DOMAIN
                         )
+                    );
+
+                    // Cancel order.
+                    $event = (new OrderEvent($order))
+                        ->setStatus(OrderStatusQuery::getCancelledStatus()->getId());
+                    $this->dispatch(TheliaEvents::ORDER_UPDATE_STATUS, $event);
+
+                    $this->getLog()->addError(
+                        $this->getTranslator()->trans('Order was canceled.', [], Mercanet::MODULE_DOMAIN)
                     );
                 }
             } else {
