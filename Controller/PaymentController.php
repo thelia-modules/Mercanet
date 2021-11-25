@@ -52,7 +52,7 @@ class PaymentController extends BasePaymentModuleController
      *
      * La validation de commande est efectuée dans le traitement de la réponse automatique (le callback de la banque).
      */
-    public function processManualResponse()
+    public function processManualResponse(): void
     {
         $this->getLog()->addInfo(
             $this->getTranslator()->trans(
@@ -65,6 +65,14 @@ class PaymentController extends BasePaymentModuleController
         $paymentResponse = new MercanetApi(Mercanet::getConfigValue('secretKey'));
 
         $paymentResponse->setResponse($_POST);
+
+        $this->getLog()->addInfo(
+            $this->getTranslator()->trans(
+                'Response parameters : %resp',
+                ['%resp' => print_r($paymentResponse->getDataString(), true)],
+                Mercanet::MODULE_DOMAIN
+            )
+        );
 
         $order = OrderQuery::create()
             ->filterById($paymentResponse->getParam('ORDERID'))
@@ -114,11 +122,11 @@ class PaymentController extends BasePaymentModuleController
         );
 
         if ($paymentResponse->isValid()) {
-            if ($paymentResponse->isSuccessful()) {
-                if (null !== $order = OrderQuery::create()
-                    ->filterByTransactionRef($paymentResponse->getParam('TRANSACTIONREFERENCE'))
+            if (null !== $order = OrderQuery::create()
+                    ->filterById($paymentResponse->getParam('ORDERID'))
                     ->filterByPaymentModuleId(Mercanet::getModuleId())
                     ->findOne()) {
+                if ($paymentResponse->isSuccessful()) {
                     $this->confirmPayment($order->getId());
 
                     $this->getLog()->addInfo(
@@ -132,10 +140,12 @@ class PaymentController extends BasePaymentModuleController
                         )
                     );
                 } else {
+                    $this->cancelPayment($order->getId());
+
                     $this->getLog()->addError(
                         $this->getTranslator()->trans(
-                            'Cannot find an order for transaction référence "%trans"',
-                            ['%trans' => $paymentResponse->getParam('TRANSACTIONREFERENCE')],
+                            'Cannot validate order. Response code is %resp',
+                            ['%resp' => $paymentResponse->getParam('RESPONSECODE')],
                             Mercanet::MODULE_DOMAIN
                         )
                     );
@@ -143,8 +153,8 @@ class PaymentController extends BasePaymentModuleController
             } else {
                 $this->getLog()->addError(
                     $this->getTranslator()->trans(
-                        'Cannot validate order. Response code is %resp',
-                        ['%resp' => $paymentResponse->getParam('RESPONSECODE') ],
+                        'Cannot find an order for transaction référence "%trans"',
+                        ['%trans' => $paymentResponse->getParam('TRANSACTIONREFERENCE')],
                         Mercanet::MODULE_DOMAIN
                     )
                 );
@@ -172,7 +182,7 @@ class PaymentController extends BasePaymentModuleController
      * @param $orderId int the order ID
      * @return \Thelia\Core\HttpFoundation\Response
      */
-    public function processUserCancel($orderId)
+    public function processUserCancel($orderId): void
     {
         $this->getLog()->addInfo(
             $this->getTranslator()->trans(
@@ -187,7 +197,7 @@ class PaymentController extends BasePaymentModuleController
                 $currentCustomerId = $this->getSecurityContext()->getCustomerUser()->getId();
                 $orderCustomerId = $order->getCustomerId();
 
-                if ($orderCustomerId != $currentCustomerId) {
+                if ($orderCustomerId !== $currentCustomerId) {
                     throw new TheliaProcessException(
                         sprintf(
                             "User ID %d is trying to cancel order ID %d ordered by user ID %d",
