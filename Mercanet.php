@@ -12,6 +12,7 @@ namespace Mercanet;
 
 use Mercanet\Api\MercanetApi;
 use Propel\Runtime\Connection\ConnectionInterface;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
 use Symfony\Component\Routing\Router;
 use Thelia\Model\Message;
 use Thelia\Model\MessageQuery;
@@ -37,7 +38,7 @@ class Mercanet extends AbstractPaymentModule
      * @param ConnectionInterface|null $con
      * @throws \Propel\Runtime\Exception\PropelException
      */
-    public function postActivation(ConnectionInterface $con = null)
+    public function postActivation(ConnectionInterface $con = null): void
     {
         // Setup some default values
         if (null === self ::getConfigValue('merchantId', null)) {
@@ -77,7 +78,7 @@ class Mercanet extends AbstractPaymentModule
      * @param bool $deleteModuleData
      * @throws \Propel\Runtime\Exception\PropelException
      */
-    public function destroy(ConnectionInterface $con = null, $deleteModuleData = false)
+    public function destroy(ConnectionInterface $con = null, $deleteModuleData = false): void
     {
         if ($deleteModuleData) {
             MessageQuery::create()->findOneByName(self::CONFIRMATION_MESSAGE_NAME)->delete();
@@ -143,9 +144,6 @@ class Mercanet extends AbstractPaymentModule
         $amount = $order->getTotalAmount();
         $customer = $order->getCustomer();
 
-        /** @var Router $router */
-        $router = $this->getContainer()->get('router.mercanet');
-
         // Initialisation de la classe Mercanet avec passage en parametre de la cle secrete
         $paymentRequest = new MercanetApi(self::getConfigValue('secretKey'));
 
@@ -172,8 +170,8 @@ class Mercanet extends AbstractPaymentModule
 
         $paymentRequest->setCurrency($order->getCurrency()->getCode());
 
-        $paymentRequest->setNormalReturnUrl(URL::getInstance()->absoluteUrl($router->generate('mercanet.payment.manual_response')));
-        $paymentRequest->setAutomaticResponseUrl(URL::getInstance()->absoluteUrl($router->generate('mercanet.payment.confirmation')));
+        $paymentRequest->setNormalReturnUrl(URL::getInstance()->absoluteUrl('/mercanet/manual-response'));
+        $paymentRequest->setAutomaticResponseUrl(URL::getInstance()->absoluteUrl('/mercanet/callback'));
 
         // Renseigner les parametres facultatifs pour l'appel de la page de paiement
         try {
@@ -266,5 +264,16 @@ class Mercanet extends AbstractPaymentModule
             $order_total > 0
             &&
             ($min_amount <= 0 || $order_total >= $min_amount) && ($max_amount <= 0 || $order_total <= $max_amount);
+    }
+
+    /**
+     * Defines how services are loaded in your modules.
+     */
+    public static function configureServices(ServicesConfigurator $servicesConfigurator): void
+    {
+        $servicesConfigurator->load(self::getModuleCode().'\\', __DIR__)
+            ->exclude([THELIA_MODULE_DIR.ucfirst(self::getModuleCode()).'/I18n/*'])
+            ->autowire(true)
+            ->autoconfigure(true);
     }
 }

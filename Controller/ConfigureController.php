@@ -11,6 +11,7 @@
 namespace Mercanet\Controller;
 
 use Mercanet\Mercanet;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Thelia\Controller\Admin\BaseAdminController;
 use Thelia\Core\Security\AccessManager;
@@ -33,7 +34,7 @@ class ConfigureController extends BaseAdminController
 
         $logFilePath = sprintf(THELIA_ROOT."log".DS."%s.log", Mercanet::MODULE_DOMAIN);
 
-        return Response::create(
+        return new Response(
             @file_get_contents($logFilePath),
             200,
             array(
@@ -44,7 +45,7 @@ class ConfigureController extends BaseAdminController
 
     }
 
-    public function configure()
+    public function configure(ContainerInterface $container)
     {
         if (null !== $response = $this->checkAuth(AdminResources::MODULE, 'mercanet', AccessManager::UPDATE)) {
             return $response;

@@ -11,6 +11,11 @@
 namespace Mercanet\Form;
 
 use Mercanet\Mercanet;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Thelia\Core\Translation\Translator;
@@ -36,7 +41,7 @@ class ConfigForm extends BaseForm
         $this->formBuilder
             ->add(
                 'merchantId',
-                'text',
+                TextType::class,
                 [
                     'constraints' => [
                         new NotBlank(),
@@ -49,14 +54,14 @@ class ConfigForm extends BaseForm
             )
             ->add(
                 'mode',
-                'choice',
+                ChoiceType::class,
                 [
                     'constraints' =>  [
                         new NotBlank()
                     ],
                     'choices' => [
-                        'TEST' => $translator->trans('Test', [], Mercanet::MODULE_DOMAIN),
-                        'PRODUCTION' => $translator->trans('Production', [], Mercanet::MODULE_DOMAIN),
+                        $translator->trans('Test', [], Mercanet::MODULE_DOMAIN) => 'TEST',
+                        $translator->trans('Production', [], Mercanet::MODULE_DOMAIN) => 'PRODUCTION',
                     ],
                     'label' => $translator->trans('Operation Mode', [], Mercanet::MODULE_DOMAIN),
                     'label_attr' => [
@@ -67,7 +72,7 @@ class ConfigForm extends BaseForm
             )
             ->add(
                 'allowed_ip_list',
-                'textarea',
+                TextareaType::class,
                 [
                     'required' => false,
                     'label' => $translator->trans('Allowed IPs in test mode', [], Mercanet::MODULE_DOMAIN),
@@ -86,7 +91,7 @@ class ConfigForm extends BaseForm
             )
             ->add(
                 'minimum_amount',
-                'text',
+                TextType::class,
                 [
                     'constraints' => [
                         new NotBlank(),
@@ -105,7 +110,7 @@ class ConfigForm extends BaseForm
             )
             ->add(
                 'maximum_amount',
-                'text',
+                TextType::class,
                 [
                     'constraints' => [
                         new NotBlank(),
@@ -124,7 +129,7 @@ class ConfigForm extends BaseForm
             )
             ->add(
                 'secretKey',
-                'text',
+                TextType::class,
                 [
                     'label' => $translator->trans('Mercanet secret key', [], Mercanet::MODULE_DOMAIN),
                     'label_attr' => [
@@ -142,7 +147,7 @@ class ConfigForm extends BaseForm
             )
             ->add(
                 'secretKeyVersion',
-                'text',
+                TextType::class,
                 [
                     'label' => $translator->trans('Mercanet secret key version number', [], Mercanet::MODULE_DOMAIN),
                     'label_attr' => [
@@ -160,7 +165,7 @@ class ConfigForm extends BaseForm
             )
             ->add(
                 'send_confirmation_message_only_if_paid',
-                'checkbox',
+                CheckboxType::class,
                 [
                     'value' => 1,
                     'required' => false,
@@ -176,7 +181,7 @@ class ConfigForm extends BaseForm
             )
             ->add(
                 'mode_v2_simplifie',
-                'checkbox',
+                CheckboxType::class,
                 [
                     'value' => 1,
                     'required' => false,
@@ -192,7 +197,7 @@ class ConfigForm extends BaseForm
             )
             ->add(
                 'send_payment_confirmation_message',
-                'checkbox',
+                CheckboxType::class,
                 [
                     'value' => 1,
                     'required' => false,
@@ -210,7 +215,7 @@ class ConfigForm extends BaseForm
             // -- Multiple times payement parameters, hidden id the MercanetNx module is not activated.
             ->add(
                 'nx_nb_installments',
-                $multiEnabled ? 'text' : 'hidden',
+                $multiEnabled ? TextType::class : HiddenType::class,
                 [
                     'constraints' => [
                         new NotBlank(),
@@ -230,7 +235,7 @@ class ConfigForm extends BaseForm
             )
             ->add(
                 'nx_minimum_amount',
-                $multiEnabled ? 'text' : 'hidden',
+                $multiEnabled ? TextType::class : HiddenType::class,
                 [
                     'constraints' => [
                         new NotBlank(),
@@ -250,7 +255,7 @@ class ConfigForm extends BaseForm
             )
             ->add(
                 'nx_maximum_amount',
-                $multiEnabled ? 'text' : 'hidden',
+                $multiEnabled ? TextType::class : HiddenType::class,
                 [
                     'constraints' => [
                         new NotBlank(),
@@ -274,7 +279,7 @@ class ConfigForm extends BaseForm
     /**
      * @return string the name of you form. This name must be unique
      */
-    public function getName()
+    public static function getName()
     {
         return 'config';
     }
