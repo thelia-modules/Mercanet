@@ -77,7 +77,7 @@ class SendConfirmationEmail implements EventSubscriberInterface
 
             // Send confirmation email if required.
             if (Mercanet::getConfigValue('send_confirmation_message_only_if_paid')) {
-                $dispatcher->dispatch(TheliaEvents::ORDER_SEND_CONFIRMATION_EMAIL, $event);
+                $dispatcher->dispatch($event, TheliaEvents::ORDER_SEND_CONFIRMATION_EMAIL);
             }
 
             Tlog::getInstance()->debug("Confirmation email sent to customer " . $order->getCustomer()->getEmail());
