@@ -12,6 +12,7 @@ namespace Mercanet\Controller;
 
 use Mercanet\Api\MercanetApi;
 use Mercanet\Mercanet;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Thelia\Core\Event\Order\OrderEvent;
 use Thelia\Core\Event\TheliaEvents;
 use Thelia\Core\HttpFoundation\Response;
@@ -99,7 +100,7 @@ class PaymentController extends BasePaymentModuleController
      * @return \Symfony\Component\HttpFoundation\Response
      * @throws \Exception
      */
-    public function processMercanetRequest()
+    public function processMercanetRequest(EventDispatcherInterface $eventDispatcher)
     {
         $this->getLog()->addInfo(
             $this->getTranslator()->trans(
@@ -127,7 +128,7 @@ class PaymentController extends BasePaymentModuleController
                     ->filterByPaymentModuleId(Mercanet::getModuleId())
                     ->findOne()) {
                 if ($paymentResponse->isSuccessful()) {
-                    $this->confirmPayment($order->getId());
+                    $this->confirmPayment($eventDispatcher, $order->getId());
 
                     $this->getLog()->addInfo(
                         $this->getTranslator()->trans(
